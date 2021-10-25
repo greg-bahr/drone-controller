@@ -15,10 +15,12 @@ import javax.inject.Singleton
 import kotlin.concurrent.thread
 import kotlin.coroutines.coroutineContext
 
-val TAG = "BluetoothConnectionManager"
-
 @Singleton
 class BluetoothConnectionManager @Inject constructor() {
+
+    companion object {
+        const val TAG = "BluetoothConnectionManager"
+    }
 
     private var socket: BluetoothSocket? = null
     private val isConnecting = AtomicBoolean(false)
@@ -48,25 +50,34 @@ class BluetoothConnectionManager @Inject constructor() {
         }
     }
 
-    fun write(bytes: ByteArray) {
-        if (socket?.isConnected == false) {
-            close()
-            throw IllegalStateException("Cannot write when not connected to bluetooth")
+    suspend fun write(bytes: ByteArray) = coroutineScope {
+        if (socket == null) {
+            throw IllegalStateException("Attempted to write without a bluetooth socket")
+        } else if (!socket!!.isConnected) {
+            Log.d(TAG, "Attempted to write while bluetooth not connected. Reconnecting...")
+
+            withContext(Dispatchers.IO) {
+                socket?.connect()
+            }
         }
 
         try {
-            socket?.outputStream?.write(bytes)
+            withContext(Dispatchers.IO) {
+                socket?.outputStream?.write(bytes)
+            }
         } catch (e: IOException) {
-            Log.e(TAG, "Error occured when writing data", e)
+            Log.e(TAG, "Error occurred when writing data", e)
             throw e
         }
     }
 
     private fun read() {
-        while (true) {
-            if (socket?.isConnected == false) {
-                close()
-                throw IllegalStateException("Cannot read when not connected to bluetooth")
+        while (isReading.get()) {
+            if (socket == null) {
+                throw IllegalStateException("Attempted to read without a bluetooth socket!")
+            } else if (!socket!!.isConnected) {
+                Log.d(TAG, "Attempted to read while bluetooth not connected. Reconnecting...")
+                socket?.connect()
             }
 
             try {
@@ -76,7 +87,6 @@ class BluetoothConnectionManager @Inject constructor() {
                 _data.value = bytes
             } catch (e: Exception) {
                 Log.e(TAG, "Error reading from bluetooth input stream", e)
-                socket?.connect()
             }
         }
     }
@@ -86,6 +96,5 @@ class BluetoothConnectionManager @Inject constructor() {
         job = null
 
         socket?.close()
-        socket = null
     }
 }

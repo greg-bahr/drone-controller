@@ -27,8 +27,6 @@ class RSSIPacketParser {
         return null
     }
 
-    data class RSSIPacket(var rssi: Byte, var snr: Byte)
-
     private enum class State {
         INITIALIZED,
         FOUND_HEADER,

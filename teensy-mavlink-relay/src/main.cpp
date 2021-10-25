@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <LoRa.h>
-#include <mavlink/minimal/mavlink.h>
+#include <mavlink/standard/mavlink.h>
 
 const int csPin = 10;
 const int resetPin = 4;

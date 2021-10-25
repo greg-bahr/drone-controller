@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <LoRa.h>
-#include <mavlink/minimal/mavlink.h>
+#include <mavlink/standard/mavlink.h>
 #include "BluetoothSerial.h"
 
 byte localAddress = 0xAA;
@@ -46,11 +46,13 @@ void listenToBluetooth() {
   mavlink_message_t msg;
   mavlink_status_t status;
 
-  while(SerialBT.available()) {
-    uint8_t c = SerialBT.read();
+  if (SerialBT.available()) {
+    while(SerialBT.available()) {
+      uint8_t c = SerialBT.read();
 
-    if(mavlink_parse_char(MAVLINK_COMM_0, c, &msg, &status)) {
-      sendMessage(&msg);
+      if(mavlink_parse_char(MAVLINK_COMM_0, c, &msg, &status)) {
+        sendMessage(&msg);
+      }
     }
   }
 }
