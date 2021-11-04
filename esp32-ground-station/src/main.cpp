@@ -3,6 +3,9 @@
 #include <mavlink/standard/mavlink.h>
 #include "BluetoothSerial.h"
 
+#define BUFFER_SIZE 10000
+#define FLUSH_INTERVAL 100
+
 byte localAddress = 0xAA;
 byte droneAddress = 0xBB;
 
@@ -10,6 +13,18 @@ const int csPin = 5;
 const int resetPin = 33;
 
 BluetoothSerial SerialBT;
+
+unsigned long previousMillis = 0;
+byte buffer[BUFFER_SIZE];
+int bufferLocation = 0;
+
+void flushBuffer() {
+  for (int i = 0; i < bufferLocation; i++) {
+    SerialBT.write(buffer[i]);
+    buffer[i] = 0;
+  }
+  bufferLocation = 0;
+}
 
 void onReceive(int packetSize) {
   if (packetSize == 0) return;
@@ -22,12 +37,13 @@ void onReceive(int packetSize) {
     return;
   }
 
-  SerialBT.write(0xAB);
-  SerialBT.write(LoRa.packetRssi());
-  SerialBT.write(LoRa.packetSnr());
-
   while (LoRa.available()) {
-    SerialBT.write(LoRa.read());
+    if (bufferLocation == BUFFER_SIZE) {
+      flushBuffer();
+    }
+
+    buffer[bufferLocation] = LoRa.read();
+    bufferLocation++;
   }
 }
 
@@ -61,6 +77,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
 
+  previousMillis = millis();
   SerialBT.begin("Ground Relay");
   LoRa.setPins(csPin, resetPin, -1);
 
@@ -75,6 +92,11 @@ void setup() {
 
 void loop() {
   onReceive(LoRa.parsePacket());
-
   listenToBluetooth();
+
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= FLUSH_INTERVAL) {
+    flushBuffer();
+    previousMillis = currentMillis;
+  }
 }

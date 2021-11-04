@@ -26,7 +26,7 @@ void onReceive(int packetSize) {
 
 void setup() {
   Serial.begin(9600);
-  Serial3.begin(57600, SERIAL_8N1);
+  Serial3.begin(115200, SERIAL_8N1);
   while(!Serial3);
   LoRa.setPins(csPin, resetPin, irqPin);
 

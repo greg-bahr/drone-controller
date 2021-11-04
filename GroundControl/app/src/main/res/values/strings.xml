@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Ground Control</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiZ3JlZm9yeSIsImEiOiJja3ZlOWNubDJiZjFzMnptbm8xanJyODhkIn0.UJFhToL67toXHHoOJiKJ7w</string>
 </resources>
