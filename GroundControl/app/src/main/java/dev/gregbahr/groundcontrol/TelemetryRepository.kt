@@ -131,19 +131,6 @@ class TelemetryRepository @Inject constructor(private val bluetoothConnectionMan
 
     private fun parseBluetoothPacket(packet: ByteArray) {
         for (i in packet.indices) {
-            if (packet[i] == 0.toByte()) {
-                var numFound = false
-                for (j in 1..30) {
-                    if (packet[j] != 0.toByte()) {
-                        numFound = true
-                        break
-                    }
-                }
-                if (!numFound) {
-                    return
-                }
-            }
-
             val byte = packet[i]
             if (mavLinkPacket == null) {
                 mavLinkPacket = mavlinkParser.mavlink_parse_char(byte.toInt())
@@ -155,6 +142,7 @@ class TelemetryRepository @Inject constructor(private val bluetoothConnectionMan
 
                     _packetFlow.value = mavLinkPacket!!
                     mavLinkPacket = null
+                    return
                 }
             }
         }

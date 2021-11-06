@@ -101,7 +101,6 @@ class GroundControlActivity : ComponentActivity() {
                     )
 
                     HeartbeatCounter()
-                    GpsComponent()
 
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                         ArmButtons()
@@ -134,32 +133,6 @@ class GroundControlActivity : ComponentActivity() {
         }
 
         return null
-    }
-
-    @Composable
-    fun GpsComponent() {
-        var gpsMessage by remember { mutableStateOf(msg_global_position_int()) }
-        LaunchedEffect(true) {
-            model.packetFlow.transform {
-                if (it.msgid == msg_global_position_int.MAVLINK_MSG_ID_GLOBAL_POSITION_INT) {
-                    emit(msg_global_position_int(it))
-                }
-            }.stateIn(CoroutineScope(Dispatchers.Default), SharingStarted.Lazily, msg_global_position_int()).collect {
-                gpsMessage = it
-            }
-        }
-
-        Row(modifier = Modifier.padding(12.dp)) {
-            Text("Lat: ${convertMavlinkDegToDecimal(gpsMessage.lat)}", fontSize = 16.sp)
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Text("Lon: ${convertMavlinkDegToDecimal(gpsMessage.lon)}", fontSize = 16.sp)
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Text("Alt: ${gpsMessage.alt / 1000.0}", fontSize = 16.sp)
-        }
     }
 
     @Composable

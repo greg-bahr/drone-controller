@@ -82,9 +82,9 @@ class BluetoothConnectionManager @Inject constructor() {
 
             try {
                 val bytes = ByteArray(1024)
-                socket?.inputStream?.read(bytes)
+                val count = socket?.inputStream?.read(bytes)
 
-                _data.value = bytes
+                _data.value =  if (count != null) bytes.dropLast(bytes.size - count).toByteArray() else bytes
             } catch (e: Exception) {
                 Log.e(TAG, "Error reading from bluetooth input stream", e)
             }
